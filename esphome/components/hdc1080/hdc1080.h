@@ -38,6 +38,9 @@ class HDC1080Component : public PollingComponent, public i2c::I2CDevice {
   sensor::Sensor *humidity_{nullptr};
   float temperature_value;
   float humidity_value;
+
+  i2c::ErrorCode measure_and_get_temperature();
+  i2c::ErrorCode measure_and_get_humidity();
 };
 
 }  // namespace hdc1080

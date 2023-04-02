@@ -41,39 +41,51 @@ void HDC1080Component::dump_config() {
   LOG_SENSOR("  ", "Temperature", this->temperature_);
   LOG_SENSOR("  ", "Humidity", this->humidity_);
 }
-void HDC1080Component::update() {
 
-  //if(heater is off)
-
-  //void get_temp
+i2c::ErrorCode HDC1080Component::measure_and_get_temperature() {
   uint16_t raw_temp;
-  if (this->write(&HDC1080_CMD_TEMPERATURE, 1) != i2c::ERROR_OK) {
+  i2c::ErrorCode r;
+  if ((r=this->write(&HDC1080_CMD_TEMPERATURE, 1)) != i2c::ERROR_OK) {
     this->status_set_warning();
-    return;
+    return r;
   }
   delay(20);
-  if (this->read(reinterpret_cast<uint8_t *>(&raw_temp), 2) != i2c::ERROR_OK) {
+  if ((r=this->read(reinterpret_cast<uint8_t *>(&raw_temp), 2) )!= i2c::ERROR_OK) {
     this->status_set_warning();
-    return;
+    return r;
   }
   raw_temp = i2c::i2ctohs(raw_temp);
   this->temperature_value = raw_temp * 0.0025177f - 40.0f;  // raw * 2^-16 * 165 - 40
+  return i2c::ERROR_OK;
+}
 
-
-  //void get_humidity
+i2c::ErrorCode HDC1080Component::measure_and_get_humidity() {
   uint16_t raw_humidity;
-  if (this->write(&HDC1080_CMD_HUMIDITY, 1) != i2c::ERROR_OK) {
+  i2c::ErrorCode r;
+  if ((r=this->write(&HDC1080_CMD_HUMIDITY, 1)) != i2c::ERROR_OK) {
     this->status_set_warning();
-    return;
+    return r;
   }
   delay(20);
-  if (this->read(reinterpret_cast<uint8_t *>(&raw_humidity), 2) != i2c::ERROR_OK) {
+  if ((r=this->read(reinterpret_cast<uint8_t *>(&raw_humidity), 2)) != i2c::ERROR_OK) {
     this->status_set_warning();
-    return;
+    return r;
   }
   raw_humidity = i2c::i2ctohs(raw_humidity);
   this->humidity_value = raw_humidity * 0.001525879f;  // raw * 2^-16 * 100
+  return i2c::ERROR_OK;
+}
 
+void HDC1080Component::update() {
+
+  // if(heater is off){
+  if (this->measure_and_get_temperature() != i2c::ERROR_OK) {
+    return ;
+  }
+  if (this->measure_and_get_humidity() != i2c::ERROR_OK) {
+    return ;
+  }
+  //}
 
   this->temperature_->publish_state(this->temperature_value);
   this->humidity_->publish_state(this->humidity_value);
