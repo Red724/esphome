@@ -15,8 +15,12 @@ static const uint8_t HDC1080_CMD_HUMIDITY = 0x01;
 void HDC1080Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up HDC1080...");
 
+  // resolution 14bit for both humidity and temperature
+  HDC1080_config_register initial_config;
+  initial_config.rawData=0b00000000;
+
   const uint8_t data[2] = {
-      0b00000000,  // resolution 14bit for both humidity and temperature
+      initial_config.rawData,
       0b00000000   // reserved
   };
 

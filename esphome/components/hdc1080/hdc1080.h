@@ -7,6 +7,19 @@
 namespace esphome {
 namespace hdc1080 {
 
+typedef union {
+  uint8_t rawData;
+  struct {
+    uint8_t HumidityMeasurementResolution : 2;
+    uint8_t TemperatureMeasurementResolution : 1;
+    uint8_t BatteryStatus : 1;
+    uint8_t ModeOfAcquisition : 1;
+    uint8_t Heater : 1;
+    uint8_t ReservedAgain : 1;
+    uint8_t SoftwareReset : 1;
+  };
+} HDC1080_config_register;
+
 class HDC1080Component : public PollingComponent, public i2c::I2CDevice {
  public:
   void set_temperature(sensor::Sensor *temperature) { temperature_ = temperature; }
