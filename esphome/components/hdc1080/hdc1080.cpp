@@ -12,12 +12,23 @@ static const uint8_t HDC1080_CMD_CONFIGURATION = 0x02;
 static const uint8_t HDC1080_CMD_TEMPERATURE = 0x00;
 static const uint8_t HDC1080_CMD_HUMIDITY = 0x01;
 
+void HDC1080Component::heater_interval_callback() {
+  //ESP_LOGD(TAG, "heater_interval_callback() called");
+  int i;
+  for(i=0;i<1;i++){
+    this->measure_and_get_temperature();
+    this->measure_and_get_humidity();
+  }
+}
+
 void HDC1080Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up HDC1080...");
 
   // resolution 14bit for both humidity and temperature
   HDC1080_config_register initial_config;
   initial_config.rawData=0b00000000;
+
+  initial_config.Heater=0;
 
   const uint8_t data[2] = {
       initial_config.rawData,
@@ -30,6 +41,10 @@ void HDC1080Component::setup() {
     this->status_set_warning();
     return;
   }
+
+  //this->write_byte()
+
+  this->set_interval(1000, std::bind(&HDC1080Component::heater_interval_callback, this));
 }
 void HDC1080Component::dump_config() {
   ESP_LOGCONFIG(TAG, "HDC1080:");
@@ -47,11 +62,13 @@ i2c::ErrorCode HDC1080Component::measure_and_get_temperature() {
   i2c::ErrorCode r;
   if ((r=this->write(&HDC1080_CMD_TEMPERATURE, 1)) != i2c::ERROR_OK) {
     this->status_set_warning();
+    ESP_LOGW(TAG, "foo");
     return r;
   }
-  delay(20);
+  delay(10);
   if ((r=this->read(reinterpret_cast<uint8_t *>(&raw_temp), 2) )!= i2c::ERROR_OK) {
     this->status_set_warning();
+    ESP_LOGW(TAG, "bar");
     return r;
   }
   raw_temp = i2c::i2ctohs(raw_temp);
@@ -66,7 +83,7 @@ i2c::ErrorCode HDC1080Component::measure_and_get_humidity() {
     this->status_set_warning();
     return r;
   }
-  delay(20);
+  delay(10);
   if ((r=this->read(reinterpret_cast<uint8_t *>(&raw_humidity), 2)) != i2c::ERROR_OK) {
     this->status_set_warning();
     return r;
@@ -78,14 +95,14 @@ i2c::ErrorCode HDC1080Component::measure_and_get_humidity() {
 
 void HDC1080Component::update() {
 
-  // if(heater is off){
-  if (this->measure_and_get_temperature() != i2c::ERROR_OK) {
-    return ;
+  if(0) {//heater is off
+    if (this->measure_and_get_temperature() != i2c::ERROR_OK) {
+      return;
+    }
+    if (this->measure_and_get_humidity() != i2c::ERROR_OK) {
+      return;
+    }
   }
-  if (this->measure_and_get_humidity() != i2c::ERROR_OK) {
-    return ;
-  }
-  //}
 
   this->temperature_->publish_state(this->temperature_value);
   this->humidity_->publish_state(this->humidity_value);

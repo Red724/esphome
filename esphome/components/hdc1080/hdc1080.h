@@ -3,6 +3,12 @@
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/i2c/i2c.h"
+//#define HUY
+#ifdef HUY
+  #include "component.h"
+  #include "i2c.h"
+  #include "sensor.h"
+#endif
 
 namespace esphome {
 namespace hdc1080 {
@@ -36,8 +42,10 @@ class HDC1080Component : public PollingComponent, public i2c::I2CDevice {
  protected:
   sensor::Sensor *temperature_{nullptr};
   sensor::Sensor *humidity_{nullptr};
-  float temperature_value;
-  float humidity_value;
+  float temperature_value=-125;
+  float humidity_value=-1;
+
+  void heater_interval_callback();
 
   i2c::ErrorCode measure_and_get_temperature();
   i2c::ErrorCode measure_and_get_humidity();
