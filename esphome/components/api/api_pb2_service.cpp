@@ -339,6 +339,15 @@ bool APIServerConnectionBase::send_bluetooth_le_advertisement_response(const Blu
 }
 #endif
 #ifdef USE_BLUETOOTH_PROXY
+bool APIServerConnectionBase::send_bluetooth_le_raw_advertisements_response(
+    const BluetoothLERawAdvertisementsResponse &msg) {
+#ifdef HAS_PROTO_MESSAGE_DUMP
+  ESP_LOGVV(TAG, "send_bluetooth_le_raw_advertisements_response: %s", msg.dump().c_str());
+#endif
+  return this->send_message_<BluetoothLERawAdvertisementsResponse>(msg, 93);
+}
+#endif
+#ifdef USE_BLUETOOTH_PROXY
 #endif
 #ifdef USE_BLUETOOTH_PROXY
 bool APIServerConnectionBase::send_bluetooth_device_connection_response(const BluetoothDeviceConnectionResponse &msg) {
@@ -452,6 +461,20 @@ bool APIServerConnectionBase::send_bluetooth_device_clear_cache_response(const B
 #endif
   return this->send_message_<BluetoothDeviceClearCacheResponse>(msg, 88);
 }
+#endif
+#ifdef USE_VOICE_ASSISTANT
+#endif
+#ifdef USE_VOICE_ASSISTANT
+bool APIServerConnectionBase::send_voice_assistant_request(const VoiceAssistantRequest &msg) {
+#ifdef HAS_PROTO_MESSAGE_DUMP
+  ESP_LOGVV(TAG, "send_voice_assistant_request: %s", msg.dump().c_str());
+#endif
+  return this->send_message_<VoiceAssistantRequest>(msg, 90);
+}
+#endif
+#ifdef USE_VOICE_ASSISTANT
+#endif
+#ifdef USE_VOICE_ASSISTANT
 #endif
 bool APIServerConnectionBase::read_message(uint32_t msg_size, uint32_t msg_type, uint8_t *msg_data) {
   switch (msg_type) {
@@ -827,6 +850,39 @@ bool APIServerConnectionBase::read_message(uint32_t msg_size, uint32_t msg_type,
       ESP_LOGVV(TAG, "on_unsubscribe_bluetooth_le_advertisements_request: %s", msg.dump().c_str());
 #endif
       this->on_unsubscribe_bluetooth_le_advertisements_request(msg);
+#endif
+      break;
+    }
+    case 89: {
+#ifdef USE_VOICE_ASSISTANT
+      SubscribeVoiceAssistantRequest msg;
+      msg.decode(msg_data, msg_size);
+#ifdef HAS_PROTO_MESSAGE_DUMP
+      ESP_LOGVV(TAG, "on_subscribe_voice_assistant_request: %s", msg.dump().c_str());
+#endif
+      this->on_subscribe_voice_assistant_request(msg);
+#endif
+      break;
+    }
+    case 91: {
+#ifdef USE_VOICE_ASSISTANT
+      VoiceAssistantResponse msg;
+      msg.decode(msg_data, msg_size);
+#ifdef HAS_PROTO_MESSAGE_DUMP
+      ESP_LOGVV(TAG, "on_voice_assistant_response: %s", msg.dump().c_str());
+#endif
+      this->on_voice_assistant_response(msg);
+#endif
+      break;
+    }
+    case 92: {
+#ifdef USE_VOICE_ASSISTANT
+      VoiceAssistantEventResponse msg;
+      msg.decode(msg_data, msg_size);
+#ifdef HAS_PROTO_MESSAGE_DUMP
+      ESP_LOGVV(TAG, "on_voice_assistant_event_response: %s", msg.dump().c_str());
+#endif
+      this->on_voice_assistant_event_response(msg);
 #endif
       break;
     }
@@ -1224,6 +1280,19 @@ void APIServerConnection::on_unsubscribe_bluetooth_le_advertisements_request(
     return;
   }
   this->unsubscribe_bluetooth_le_advertisements(msg);
+}
+#endif
+#ifdef USE_VOICE_ASSISTANT
+void APIServerConnection::on_subscribe_voice_assistant_request(const SubscribeVoiceAssistantRequest &msg) {
+  if (!this->is_connection_setup()) {
+    this->on_no_setup_connection();
+    return;
+  }
+  if (!this->is_authenticated()) {
+    this->on_unauthenticated_access();
+    return;
+  }
+  this->subscribe_voice_assistant(msg);
 }
 #endif
 
