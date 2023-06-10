@@ -15,7 +15,7 @@ static const uint8_t HDC1080_CMD_HUMIDITY = 0x01;
 void HDC1080Component::heater_interval_callback() {
   //ESP_LOGD(TAG, "heater_interval_callback() called");
   int i;
-  for(i=0;i<100;i++){
+  for(i=0;i<1;i++){
     this->measure_and_get_temperature();
     this->measure_and_get_humidity();
   }
